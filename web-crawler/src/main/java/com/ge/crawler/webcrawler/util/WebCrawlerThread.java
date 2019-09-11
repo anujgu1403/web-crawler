@@ -11,36 +11,38 @@ import org.springframework.core.io.ClassPathResource;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class WebCrawlerThread implements Runnable{
+public class WebCrawlerThread extends Thread{
 	
 	Set<String> visitedPagesList= new HashSet<String>();
 	Set<String> errorPagesList=new HashSet<String>();
 	Set<String> skippedPagesList=new HashSet<String>();
 	Set<String> addressNodeList=new HashSet<String>();
+	String address= "page-51";
+	String fileName = "static/internet.json";
+	byte[] byteArray = new byte[4024];
+	InputStream inputStream = null;
+	JsonNode rootNode = null;
+	JsonNode pagesNode= null;
 
-	@Override
-	public void run() {
-		String address= "page-51";
-		String fileName = "static/internet.json";
-		byte[] byteArray = new byte[4024];
-		InputStream inputStream = null;
+	public void makeConnection() {
+
 		try {
 			
 			inputStream=new ClassPathResource(fileName).getInputStream();
 			  inputStream.read(byteArray); ObjectMapper objectMapper = new ObjectMapper();
-			  JsonNode rootNode = objectMapper.readTree(byteArray); 
-			  JsonNode pagesNode = rootNode.get("pages");
+			  rootNode = objectMapper.readTree(byteArray); 
+			  pagesNode = rootNode.get("pages");
 		
-			/*
+			//Thread.currentThread();
+		/*
 			 * ObjectMapper objectMapper = new ObjectMapper(); Pages crawlerPages =
 			 * objectMapper.readValue(new File(fileName), Pages.class); List<PageLinks>
 			 * pageLinksList= crawlerPages.getPages(); for(int
 			 * i=0;i<pageLinksList.size();i++) { PageLinks pageLinks=pageLinksList.get(i);
 			 * System.out.println(pageLinks.getAddress()); }
 			 */
+		//Thread.sleep(100);
 		
-		fillAllAddressNodes(pagesNode);
-		search(pagesNode, address);
 	
 		}catch (Exception e) {
 			e.printStackTrace();
@@ -54,8 +56,14 @@ public class WebCrawlerThread implements Runnable{
 			}
 		}
 	}
+	@Override
+	public void run() {
+		System.out.println("run");
+		fillAllAddressNodes(pagesNode);
+		search(pagesNode, address);
+	}
 	
-public void search(JsonNode jsonNode, String searchKeyword) {
+	public void search(JsonNode jsonNode, String searchKeyword) {
 		
 		if(!addressNodeList.contains(searchKeyword)) {
 			errorPagesList.add(searchKeyword);
@@ -81,11 +89,12 @@ public void search(JsonNode jsonNode, String searchKeyword) {
 		});
 	}
 
-	public void fillAllAddressNodes(JsonNode jsonNode) {
+ 	 public void  fillAllAddressNodes(JsonNode jsonNode) {
 		  Iterator<JsonNode> pagesNodeItr = jsonNode.elements();
 		  pagesNodeItr.forEachRemaining(node->{
 				pagesNodeItr.next();
 				addressNodeList.add(node.get("address").asText());
 		  });
 	}
+
 }
