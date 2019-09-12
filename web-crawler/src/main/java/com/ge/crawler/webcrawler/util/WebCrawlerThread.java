@@ -2,9 +2,13 @@ package com.ge.crawler.webcrawler.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.core.io.ClassPathResource;
 
@@ -18,19 +22,24 @@ public class WebCrawlerThread extends Thread{
 	Set<String> skippedPagesList=new HashSet<String>();
 	Set<String> addressNodeList=new HashSet<String>();
 	String address= "page-51";
-	String fileName = "static/internet.json";
+	String fileName = "C:\\Users\\mayaggar\\Desktop\\project\\internet.json";
+	//String fileName = "static/internet.json";
 	byte[] byteArray = new byte[4024];
 	InputStream inputStream = null;
 	JsonNode rootNode = null;
 	JsonNode pagesNode= null;
 
-	public void makeConnection() {
+	public synchronized void makeConnection() {
 
 		try {
 			
-			inputStream=new ClassPathResource(fileName).getInputStream();
-			  inputStream.read(byteArray); ObjectMapper objectMapper = new ObjectMapper();
-			  rootNode = objectMapper.readTree(byteArray); 
+			//inputStream=new ClassPathResource(fileName).getInputStream();
+			byte[] jsonData = Files.readAllBytes(Paths.get(fileName));
+			
+			 // inputStream.read(byteArray); 
+				ObjectMapper objectMapper = new ObjectMapper();
+				Pages pages=objectMapper.readValue(jsonData, Pages.class);
+			  rootNode = objectMapper.readTree(jsonData); 
 			  pagesNode = rootNode.get("pages");
 		
 			//Thread.currentThread();
@@ -48,19 +57,25 @@ public class WebCrawlerThread extends Thread{
 			e.printStackTrace();
 		}
 		finally {
-			try {
-				inputStream.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			/*
+			 * try { inputStream.close(); } catch (IOException e) { // TODO Auto-generated
+			 * catch block e.printStackTrace(); }
+			 */
 		}
 	}
 	@Override
 	public void run() {
-		System.out.println("run");
-		fillAllAddressNodes(pagesNode);
-		search(pagesNode, address);
+		//try {
+			makeConnection();
+			fillAllAddressNodes(pagesNode);
+			search(pagesNode, address);
+			//Thread.sleep(100);
+			displayList();
+			System.out.println("Executing run method..");
+		/*}catch (InterruptedException e) {
+			e.printStackTrace();
+		}*/
+		
 	}
 	
 	public void search(JsonNode jsonNode, String searchKeyword) {
@@ -96,5 +111,10 @@ public class WebCrawlerThread extends Thread{
 				addressNodeList.add(node.get("address").asText());
 		  });
 	}
-
+ 	 
+ 	public void displayList() {
+ 		System.out.println("visitedPagesList: "+visitedPagesList);
+		  System.out.println("errorPagesList: "+errorPagesList);
+		  System.out.println("skippedPagesList: "+skippedPagesList);
+	}
 }
