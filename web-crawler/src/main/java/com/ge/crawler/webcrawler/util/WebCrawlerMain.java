@@ -1,22 +1,39 @@
 package com.ge.crawler.webcrawler.util;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class WebCrawlerMain {
 
+
+
 	public static void main(String[] args) throws InterruptedException {
 		
-		 ExecutorService es = Executors.newFixedThreadPool(5); 
+		// ExecutorService es = Executors.newFixedThreadPool(5); 
+		//System.out.println(Thread.currentThread()+"***********");
+		
 		 long startTime=System.currentTimeMillis();
-		//for(int i=0;i<5;i++) {
-			WebCrawlerThread webCThread = new WebCrawlerThread();
+		 
+		for(int i=0;i<5;i++) {
+			
 			//webCThread.makeConnection();	
-			//webCThread.start();
+			/*
+			 * synchronized (webCThread) { webCThread.start();
+			 * 
+			 * }
+			 */
+			WebCrawlerThread webCThread = new WebCrawlerThread();
+			webCThread.start();
+			webCThread.join();
+			
 			//webCThread.join();
-			//es.submit(webCThread);
-			webCThread.run();
-		//}
+			//es.execute(webCThread);
+			//webCThread.run();
+		}
+		
+	
 		
 		
 		
@@ -34,16 +51,11 @@ public class WebCrawlerMain {
 		//if(!es.isTerminated()) {
 		//System.out.println(es.isTerminated());
 		
-		/*
-		 * System.out.println("visitedPagesList: "+webCThread.visitedPagesList);
-		 * System.out.println("errorPagesList: "+webCThread.errorPagesList);
-		 * System.out.println("skippedPagesList: "+webCThread.skippedPagesList);
-		 */
 		  System.out.println("Process time: "+(System.currentTimeMillis()-startTime));
 		 
 		//}
 		
-		es.shutdownNow();
+		//es.shutdownNow();
 		
 	}
 
